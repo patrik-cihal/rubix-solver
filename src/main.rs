@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, ops::{Index, Mul}};
+use std::{cmp::Ordering, collections::{HashMap, HashSet}, ops::{Index, Mul}};
 use colored::*;
 
 const RSZ: usize = 54;
@@ -302,6 +302,96 @@ fn find_common(v1: &Vec<Rubix>, v2: &Vec<PartialRubix>) -> Option<Rubix> {
     return None;
 }
 
+fn find_common_full(v1: &Vec<Rubix>, v2: &Vec<Rubix>) -> Option<Rubix> {
+    let mut hshs = HashSet::new();
+    let mut found = None;
+    for r in v2 {
+        hshs.insert(hash(r));
+    }
+    for r in v1 {
+        if hshs.contains(&hash(r)) {
+            found = Some(hash(r));
+            break;
+        }
+    }
+    let Some(found) = found else {
+        return None;
+    };
+
+    for r in v1 {
+        if hash(r) == found {
+            return Some(*r);
+        }
+    }
+    panic!("Shouldn't get here!")
+}
+
+fn full_bfs_sqrt(r: Rubix) -> Vec<Turn> {
+    let mut f_statess = vec![vec![(Turn::ID, r)]];
+    let mut b_statess = vec![vec![(Turn::ID, SOLVED_RUBIX)]];
+
+    let found;
+
+    let mut i = 0;
+    loop {
+        let mut f_cur = f_statess.last().unwrap().iter().map(|x| x.1).collect::<Vec<_>>();
+        let mut b_cur = b_statess.last().unwrap().iter().map(|x| x.1).collect::<Vec<_>>();
+
+        if let Some(c) = find_common_full(&f_cur, &b_cur) {
+            found = c;
+            break;
+        }
+
+        if i%2 == 0 {
+            let mut f_nxt_states = vec![];
+            for state in f_cur {
+                for turn in SEARCH_TURNS {
+                    f_nxt_states.push((turn, apply_move(&state, turn.into())))
+                }
+            }
+            f_statess.push(f_nxt_states);
+        }
+        else {
+            let mut b_nxt_states = vec![];
+            for state in b_cur {
+                for turn in SEARCH_TURNS {
+                    let mv = inv(turn.into());
+                    b_nxt_states.push((turn, apply_move(&state, mv)))
+                }
+            }
+            b_statess.push(b_nxt_states);
+
+        }
+        i += 1;
+        println!("{i}");
+    }
+
+    let mut cur_r = found; 
+    let mut turns = vec![];
+    while f_statess.len() > 1 {
+        for (turn, state) in f_statess.pop().unwrap() {
+            if state == cur_r {
+                turns.push(turn);
+                cur_r = apply_move(&cur_r, inv(turn.into()));
+                break;
+            }
+        }
+    }
+    turns.reverse();
+    let mut cur_r = found;
+    while b_statess.len() > 1 {
+        for (turn, state) in b_statess.pop().unwrap() {
+            if state == cur_r {
+                turns.push(turn);
+                cur_r = apply_move(&cur_r, turn.into());
+                break;
+            }
+        }
+    }
+
+    turns
+}
+
 fn bfs_sqrt(r: Rubix, tr: PartialRubix) -> Vec<Turn> {
     let mut f_statess = vec![vec![(Turn::ID, r)]];
     let mut b_statess = vec![vec![(Turn::ID, tr)]];
@@ -429,8 +519,9 @@ fn main() {
         unsafe { HASH[i] = rand::random::<u64>() }
     }
 
-    let mixed_cube = apply_move(&SOLVED_RUBIX, mul_seq!(FC_MOVE, R_MOVE, L_MOVE, U_MOVE, R_MOVE, D_MOVE, R_MOVE, L_MOVE, F_MOVE, R_MOVE, U_MOVE, F_MOVE, L_MOVE, R_MOVE, D_MOVE, B_MOVE, R_MOVE, U_MOVE));
+    let mixed_cube = apply_move(&SOLVED_RUBIX, mul_seq!(FC_MOVE, R_MOVE, L_MOVE, U_MOVE, R_MOVE, D_MOVE, L_MOVE, U_MOVE, F_MOVE, U_MOVE, R_MOVE, L_MOVE, F_MOVE));
     display_rubix(mixed_cube);
 
-    println!("{:?}", full_solve(mixed_cube, vec![CROSS, SECOND_LAYER_GREEN, SECOND_LAYER_ORANGE, SECOND_LAYER_RED, SECOND_LAYER, YELLOW_CROSS, YELLOW_FULL]));
+    //println!("{:?}", full_solve(mixed_cube, vec![CROSS, SECOND_LAYER_GREEN, SECOND_LAYER_ORANGE, SECOND_LAYER_RED, SECOND_LAYER, YELLOW_CROSS, YELLOW_FULL]));
+    println!("{:?}", full_bfs_sqrt(mixed_cube));
 }
