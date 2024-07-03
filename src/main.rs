@@ -192,7 +192,7 @@ const SECOND_LAYER_ORANGE: PartialRubix = [
     Some(Color::Green), Some(Color::Green), None, Some(Color::Green), Some(Color::Green), None, None, None, None,
     None, None, None, None, None, None, None, None, None,
     None, None, None, Some(Color::Blue), Some(Color::Blue), None, Some(Color::Blue), Some(Color::Blue), None,
-    Some(Color::Orange), Some(Color::Orange), Some(Color::Orange), None, Some(Color::Orange), Some(Color::Orange), None, None, None,
+    Some(Color::Orange), Some(Color::Orange), Some(Color::Orange), Some(Color::Orange), Some(Color::Orange), Some(Color::Orange), None, None, None,
     None, Some(Color::Red), None, None, Some(Color::Red), None, None, None, None,
 ];
 
@@ -201,7 +201,7 @@ const SECOND_LAYER_RED: PartialRubix = [
     Some(Color::Green), Some(Color::Green), Some(Color::Green), Some(Color::Green), Some(Color::Green), Some(Color::Green), None, None, None,
     None, None, None, None, None, None, None, None, None,
     None, None, None, Some(Color::Blue), Some(Color::Blue), None, Some(Color::Blue), Some(Color::Blue), None,
-    Some(Color::Orange), Some(Color::Orange), Some(Color::Orange), None, Some(Color::Orange), Some(Color::Orange), None, None, None,
+    Some(Color::Orange), Some(Color::Orange), Some(Color::Orange), Some(Color::Orange), Some(Color::Orange), Some(Color::Orange), None, None, None,
     Some(Color::Red), Some(Color::Red), None, Some(Color::Red), Some(Color::Red), None, None, None, None,
 ];
 
@@ -509,7 +509,7 @@ fn full_solve(mut r: Rubix, steps: Vec<PartialRubix>) -> Vec<Turn> {
         r = apply_moves(r, mvs.iter().map(|&x| x.into()).collect::<Vec<Move>>());
         result.append(&mut mvs);
 
-        println!("Phase {i} finished!");
+        println!("Phase {i} finished! Turns found so far {:?}", result);
     }
     result
 }
@@ -522,6 +522,6 @@ fn main() {
     let mixed_cube = apply_move(&SOLVED_RUBIX, mul_seq!(FC_MOVE, R_MOVE, L_MOVE, U_MOVE, R_MOVE, D_MOVE, L_MOVE, U_MOVE, F_MOVE, U_MOVE, R_MOVE, L_MOVE, F_MOVE));
     display_rubix(mixed_cube);
 
-    //println!("{:?}", full_solve(mixed_cube, vec![CROSS, SECOND_LAYER_GREEN, SECOND_LAYER_ORANGE, SECOND_LAYER_RED, SECOND_LAYER, YELLOW_CROSS, YELLOW_FULL]));
-    println!("{:?}", full_bfs_sqrt(mixed_cube));
+    println!("{:?}", full_solve(mixed_cube, vec![CROSS, SECOND_LAYER_GREEN, SECOND_LAYER_ORANGE, SECOND_LAYER_RED, SECOND_LAYER, YELLOW_CROSS, YELLOW_FULL]));
+    // println!("{:?}", full_bfs_sqrt(mixed_cube));
 }
